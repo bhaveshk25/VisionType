@@ -1,23 +1,24 @@
-# macOS Copy-Paste Tool 🚀
+# VisionType 👁️
 
 ![macOS](https://img.shields.io/badge/platform-macOS%2012%2B-lightgrey?logo=apple&logoColor=white)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue?logo=python&logoColor=white)
-![Framework](https://img.shields.io/badge/framework-rumps%20%7C%20PyAutoGUI-orange)
+![Framework](https://img.shields.io/badge/framework-rumps%20%7C%20PyAutoGUI%20%7C%20Quartz-orange)
 ![OCR](https://img.shields.io/badge/OCR-Tesseract-success)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-A feature-packed macOS menu bar productivity application engineered to **bypass copy-paste restrictions** by extracting on-screen text via **OCR (Optical Character Recognition)** and typing it into any application through **simulated physical keystrokes**.
+**VisionType** is a feature-packed macOS menu bar productivity application engineered to **bypass copy-paste restrictions** by extracting on-screen text via **OCR (Optical Character Recognition)** and typing it into any application through **simulated physical keystrokes**, with full support for **emojis**, **code**, and **multiline text**.
 
 ---
 
 ## 💡 The Problem & The Solution
 
-| The Challenge | How This Tool Solves It |
+| The Challenge | How VisionType Solves It |
 | :--- | :--- |
 | **Restricted Environments**: Exam portals, locked-down browsers, remote desktop clients (Citrix, VMware Horizon, RDP), and enterprise forms block standard clipboard pasting (`⌘V`). | **Simulates Physical Keystrokes**: Types character-by-character as hardware keystrokes, completely evading clipboard paste detection. |
-| **Bot & Macro Detection**: Proctoring software checks for mechanical keystroke timing (unrealistic identical delays between characters). | **🎭 Natural / Human Typing Mode**: Introduces realistic Gaussian jitter (12–85ms) and natural cadence pauses after punctuation/spaces. |
+| **Emoji & Symbol Corruption**: Standard keystroke emulators fail or type random gibberish when encountering emojis (`🚀`, `😊`, `❤️`). | **🚀 Native Quartz Unicode Keystrokes**: Injects UTF-16 surrogate pairs directly into the macOS event tap, typing real emojis smoothly into any field. |
+| **Bot & Macro Detection**: Proctoring software checks for mechanical keystroke timing (unrealistic identical delays between characters). | **🎭 Natural / Human Typing Mode**: Introduces realistic Gaussian jitter (12–85ms) and natural cadence pauses after punctuation and spaces. |
 | **Unselectable Text**: Text embedded in videos, slides, locked PDFs, or protected websites cannot be highlighted. | **📸 On-Screen OCR**: Snaps an interactive crosshair selection of any display region and extracts clean text in milliseconds. |
-| **Messy OCR Artifacts & Code Line Numbers**: Copied code contains line numbers (`1 | `, `01. `), or OCR breaks sentences across awkward line wraps. | **🧹 Smart Cleaners**: One-click menu tools to strip code line numbers, join broken line wraps, collapse excess whitespace, and convert case. |
+| **Messy OCR Artifacts & Line Numbers**: Copied code contains line numbers (`1 | `, `01. `), or OCR turns icons into garbage characters (`©`, `~`). | **🧹 Smart Cleaners**: One-click menu tools to strip code line numbers, filter OCR emoji artifacts, join broken line wraps, and collapse whitespace. |
 
 ---
 
@@ -26,10 +27,12 @@ A feature-packed macOS menu bar productivity application engineered to **bypass 
 ### 🎯 Core Capabilities
 - 📸 **Instant Screen OCR (`⌘ + ⇧ + C` or `⌘ + ⇧ + X`)**: Snaps an interactive selection area to crop and extract text anywhere on your screen.
 - ⌨️ **Automated Keystroke Simulation (`⌘ + ⇧ + V`)**: Types buffered text at the hardware event level, seamlessly bypassing all clipboard paste blocks.
+- 🚀 **Full Emoji & Unicode Support**: Seamlessly types emojis, accented characters, and non-ASCII symbols without corruption using CoreGraphics Quartz.
 - 🎭 **Natural / Human Typing Mode**: Emulates realistic human typing speed variations (jitter) to prevent detection by automated proctoring software.
 - ✍️ **Enter Custom Text Modal**: Quick popup dialog (`rumps.Window`) to enter or paste custom text directly into the typing buffer without taking a screenshot.
 
 ### 🧹 Smart Cleaners & Formatters
+- **✨ Filter OCR Emoji Artifacts**: Cleans up random symbols (`©`, `®`, `~`, `|`) produced when Tesseract tries to interpret an emoji icon as Latin text.
 - **🔗 Fix Broken Linebreaks**: Automatically re-joins paragraphs that were awkwardly wrapped across lines by OCR.
 - **🔢 Strip Code Line Numbers**: Regex-powered cleaner that strips prefixes like `1 | `, `01: `, `[12] `, or `>>> `.
 - **✂️ Trim Excess Whitespace**: Removes trailing spaces and collapses redundant blank lines.
@@ -57,7 +60,7 @@ flowchart TD
     end
 
     subgraph Cleaning["2. Smart Transformation"]
-        E --> F["Cleaners: Strip Line Numbers / Join Lines / Case"]
+        E --> F["Cleaners: Filter Emoji Artifacts / Strip Line Numbers / Join Lines"]
         F --> E
     end
 
@@ -65,8 +68,12 @@ flowchart TD
         E -->|"⌘ + ⇧ + V"| G{"Typing Mode"}
         G -->|"Normal / Fast / Slow"| H["Fixed-Interval Keystrokes"]
         G -->|"🎭 Human Mode"| I["Gaussian Jitter + Cadence Pauses"]
-        H --> J["Types into Target Field\n(Bypasses Paste Restrictions)"]
+        H --> J{"Character Type"}
         I --> J
+        J -->|"ASCII"| K["Standard Virtual Keypress"]
+        J -->|"Emoji / Unicode"| L["Quartz CGEvent Unicode Injection"]
+        K --> M["Types into Target Field\n(Bypasses Paste Restrictions)"]
+        L --> M
     end
 ```
 
@@ -84,19 +91,20 @@ flowchart TD
 
 ## 📋 Menu Bar Walkthrough
 
-When running, click the **📋 OCR Bot** icon in your top menu bar to access the full control center:
+Click **VisionType** in your top menu bar to access the control panel:
 
 ```
-📋 OCR Bot
+VisionType
 ├── Current (84c, 14w, 2L): "def calculate..."  <-- Live buffer stats & text preview
 ├── ─────────────────────────
 ├── 📸 Capture Text (⌘⇧C)                        <-- Triggers interactive screen selection
 ├── ⌨️  Type Text (⌘⇧V)                          <-- Starts typing buffer into focused app
-├── ✍️  Enter Custom Text...                      <-- Opens dialog to input/paste custom text
+├── ✍️  Enter Custom Text...                      <-- Opens dialog to input/paste text & emojis
 ├── ─────────────────────────
 ├── 🧹 Clean & Transform                         <-- Formatting submenu
 │   ├── 🔗 Fix Broken Linebreaks                 <-- Joins words broken across line wraps
 │   ├── 🔢 Strip Code Line Numbers               <-- Removes leading line numbers (1., 01:, >>>)
+│   ├── ✨ Filter OCR Emoji Artifacts            <-- Cleans stray symbols from emoji scans
 │   ├── ✂️  Trim Excess Whitespace                <-- Collapses blank lines & trailing spaces
 │   ├── ─────────────────────
 │   ├── 🔠 UPPERCASE                             <-- Converts text to UPPERCASE
@@ -128,23 +136,21 @@ When running, click the **📋 OCR Bot** icon in your top menu bar to access the
 ## 📖 Real-World How-To Guides
 
 ### Scenario 1: Bypassing Paste Block in an Exam or Virtual Machine (Citrix / RDP)
-1. Select the text you want to transfer, or press **`⌘ + ⇧ + C`** to crop and OCR it from another document/window.
+1. Select the text you want to transfer, or press **`⌘ + ⇧ + C`** to crop and OCR it from another window.
 2. If the exam checks for bot/macro activity, select **`⚡ Typing Speed & Mode`** > **`🎭 Natural / Human (Jitter)`**.
 3. Click your mouse into the locked input box in the exam or VM window.
 4. Press **`⌘ + ⇧ + V`**.
-5. The tool simulates authentic human typing character-by-character directly through keyboard events.
+5. VisionType simulates authentic human typing character-by-character directly through keyboard events.
 
-### Scenario 2: Copying Code from a YouTube Video or Presentation
+### Scenario 2: Handling Emojis & Special Symbols
+- When text contains emojis (e.g. from clipboard or custom text), VisionType uses **CoreGraphics Quartz** to inject genuine Unicode events rather than ASCII keycodes, preserving emojis like `🚀`, `😊`, and `❤️` perfectly.
+- If you OCR a screenshot containing an emoji icon and Tesseract produces a stray `©` or `~`, click **`🧹 Clean & Transform`** > **`✨ Filter OCR Emoji Artifacts`** to clean it instantly.
+
+### Scenario 3: Copying Code from a YouTube Video or Presentation
 1. Pause the video on the code you want.
 2. Press **`⌘ + ⇧ + C`** and drag the selection rectangle over the code.
-3. If the video displayed editor line numbers (e.g., `1 | `, `2 | `), click the menu bar and select **`🧹 Clean & Transform`** > **`🔢 Strip Code Line Numbers`**.
+3. If the video displayed editor line numbers (e.g., `1 | `, `2 | `), click **`🧹 Clean & Transform`** > **`🔢 Strip Code Line Numbers`**.
 4. Click into your code editor and press **`⌘ + ⇧ + V`**. Your clean, runnable code will be typed in!
-
-### Scenario 3: Pasting a Confidential Token or Password without Clipboard Leaks
-1. Click the menu bar and choose **`✍️ Enter Custom Text...`**.
-2. Type or paste your token into the private prompt window and click **Save to Buffer**.
-3. Click your cursor into the password field.
-4. Press **`⌘ + ⇧ + V`** to type it safely.
 
 ---
 
@@ -156,14 +162,12 @@ When running, click the **📋 OCR Bot** icon in your top menu bar to access the
 - Python 3.9+
 
 ### 2. Install Tesseract OCR
-Install the Tesseract OCR engine using Homebrew:
 ```bash
 brew install tesseract
 ```
 
 ### 3. Clone Repository & Setup Environment
 ```bash
-# Clone the repository
 git clone https://github.com/bhaveshk25/macOS-copy-paste-tool.git
 cd macOS-copy-paste-tool
 
@@ -175,17 +179,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Run the Tool
+### 4. Run VisionType
 ```bash
 python3 OCRBot/ocr_typing_bot.py
 ```
-A **📋 OCR Bot** icon will appear in your top macOS menu bar.
+A **VisionType** item will appear in your top macOS menu bar.
 
 ---
 
 ## 🔒 Required macOS Permissions
 
-Because this tool captures screen pixels, listens to global hotkeys, and generates synthetic keystrokes, macOS requires security permissions:
+Because VisionType captures screen pixels, listens to global hotkeys, and generates synthetic keystrokes, macOS requires security permissions:
 
 ### 1. Accessibility (Required for keystroke simulation and global hotkeys)
 1. Open **System Settings** > **Privacy & Security** > **Accessibility**.
@@ -196,25 +200,18 @@ Because this tool captures screen pixels, listens to global hotkeys, and generat
 1. Open **System Settings** > **Privacy & Security** > **Screen & System Audio Recording**.
 2. Ensure your terminal application is enabled.
 
-> [!TIP]
-> If you ever need to reset permissions due to macOS caching issues, run:
-> ```bash
-> tccutil reset Accessibility
-> tccutil reset ScreenCapture
-> ```
-
 ---
 
 ## 🛠️ Troubleshooting
 
 - **Tesseract Not Found Alert**:
-  Make sure you ran `brew install tesseract`. The bot automatically checks `/opt/homebrew/bin/tesseract` and `/usr/local/bin/tesseract`.
+  Make sure you ran `brew install tesseract`. VisionType automatically checks `/opt/homebrew/bin/tesseract` and `/usr/local/bin/tesseract`.
 - **Text Not Typing in Target App**:
   Ensure your terminal has **Accessibility** permission enabled in macOS System Settings.
 - **Screenshot Crosshair Doesn't Appear**:
   Ensure your terminal has **Screen Recording** permission enabled.
 - **Running in Background**:
-  To keep the bot running even after closing your terminal window:
+  To keep VisionType running in the background even after closing the terminal:
   ```bash
   nohup python3 OCRBot/ocr_typing_bot.py > /dev/null 2>&1 &
   ```

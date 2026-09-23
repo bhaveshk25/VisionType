@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-macOS Copy-Paste Tool (OCR & Auto-Typing Bot)
-A macOS menu bar application to capture text via OCR and simulate physical keystrokes,
+VisionType 👁️
+A powerful macOS menu bar application to capture text via OCR and simulate physical keystrokes,
 bypassing environments where clipboard paste is restricted or blocked.
 
-New Features:
+Features:
+- 👁️ Native menu bar branding: VisionType
+- 🚀 Full Emoji & Unicode Keystroke Support (Quartz CGEvent + fallback)
 - 🎭 Natural / Human Typing Simulation (randomized keystroke jitter)
-- 🧹 Smart Text Cleaners (fix OCR line breaks, strip code line numbers, trim spaces, case conversion)
+- 🧹 Smart Text Cleaners (OCR line fix, strip line numbers, filter emoji artifacts)
 - ✍️ Custom Text Input Modal (enter text directly into buffer)
 - 📊 Live Buffer Statistics (character, word, line counts)
 - 🔊 macOS Audio Feedback (Tink / Pop sounds on actions)
@@ -16,6 +18,7 @@ import os
 import random
 import re
 import shutil
+import struct
 import subprocess
 import threading
 import time
@@ -24,6 +27,13 @@ import pyautogui
 import pyperclip
 import pytesseract
 import rumps
+
+# Try importing Quartz for native Unicode & Emoji keystrokes
+try:
+    import Quartz
+    QUARTZ_AVAILABLE = True
+except ImportError:
+    QUARTZ_AVAILABLE = False
 
 # Try importing pynput for global hotkeys
 try:
@@ -48,6 +58,46 @@ for candidate in TESSERACT_CANDIDATES:
 
 TEMP_IMAGE_PATH = "/tmp/ocr_capture.png"
 MAX_HISTORY = 5
+
+
+# ---------------------------------------------------------
+# Unicode & Emoji Keystroke Engine
+# ---------------------------------------------------------
+def send_unicode_char(ch: str):
+    """
+    Sends a single character (including 4-byte Emojis) as a native macOS
+    keyboard event using CoreGraphics Quartz, bypassing pyautogui's ASCII-only limitation.
+    """
+    if QUARTZ_AVAILABLE:
+        try:
+            utf16_bytes = ch.encode("utf-16le")
+            num_units = len(utf16_bytes) // 2
+            units = struct.unpack(f"{num_units}H", utf16_bytes)
+
+            # KeyDown
+            event_down = Quartz.CGEventCreateKeyboardEvent(None, 0, True)
+            Quartz.CGEventKeyboardSetUnicodeString(event_down, num_units, units)
+            Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_down)
+
+            # KeyUp
+            event_up = Quartz.CGEventCreateKeyboardEvent(None, 0, False)
+            Quartz.CGEventKeyboardSetUnicodeString(event_up, num_units, units)
+            Quartz.CGEventPost(Quartz.kCGHIDEventTap, event_up)
+            return True
+        except Exception:
+            pass
+
+    # Fallback: paste single emoji via momentary clipboard
+    old_cb = pyperclip.paste()
+    try:
+        pyperclip.copy(ch)
+        pyautogui.hotkey("command", "v")
+        time.sleep(0.01)
+        return True
+    except Exception:
+        return False
+    finally:
+        threading.Timer(0.15, lambda: pyperclip.copy(old_cb)).start()
 
 
 # ---------------------------------------------------------
@@ -94,9 +144,26 @@ def clean_excess_whitespace(text: str) -> str:
     return "\n".join(result).strip()
 
 
-class OCRTypingBot(rumps.App):
+def clean_ocr_emoji_artifacts(text: str) -> str:
+    """
+    Filters common garbage characters produced when Tesseract OCR attempts
+    to interpret emojis, icons, or graphic elements as Latin text.
+    """
+    # Remove isolated copyright, trademark, and random symbols produced by emoji pixels
+    t = re.sub(r"[\u00a9\u00ae\u2122\u00a7\u00a4\u00a5\u00a2\u00bf\u00a1]", "", text)
+    # Remove weird standalone symbol clusters
+    t = re.sub(r"(?<=\s)[\~\|\^\\\/]{1,3}(?=\s|$)", "", t)
+    # Clean duplicate spaces
+    t = re.sub(r"[ \t]{2,}", " ", t)
+    return t.strip()
+
+
+# ---------------------------------------------------------
+# VisionType Application
+# ---------------------------------------------------------
+class VisionType(rumps.App):
     def __init__(self):
-        super(OCRTypingBot, self).__init__("📋 OCR Bot")
+        super(VisionType, self).__init__("VisionType")
         
         self.captured_text = ""
         self.history = []
@@ -120,6 +187,7 @@ class OCRTypingBot(rumps.App):
         self.cleaner_menu = rumps.MenuItem("🧹 Clean & Transform")
         self.cleaner_menu.add(rumps.MenuItem("🔗 Fix Broken Linebreaks", callback=lambda _: self.transform_text(clean_join_lines, "Linebreaks Joined")))
         self.cleaner_menu.add(rumps.MenuItem("🔢 Strip Code Line Numbers", callback=lambda _: self.transform_text(clean_strip_line_numbers, "Line Numbers Removed")))
+        self.cleaner_menu.add(rumps.MenuItem("✨ Filter OCR Emoji Artifacts", callback=lambda _: self.transform_text(clean_ocr_emoji_artifacts, "Emoji Artifacts Filtered")))
         self.cleaner_menu.add(rumps.MenuItem("✂️  Trim Excess Whitespace", callback=lambda _: self.transform_text(clean_excess_whitespace, "Whitespace Trimmed")))
         self.cleaner_menu.add(rumps.separator)
         self.cleaner_menu.add(rumps.MenuItem("🔠 UPPERCASE", callback=lambda _: self.transform_text(str.upper, "Converted to Uppercase")))
@@ -196,7 +264,7 @@ class OCRTypingBot(rumps.App):
         for item in [self.speed_fast, self.speed_normal, self.speed_slow, self.speed_human]:
             item.state = 0
         sender.state = 1
-        rumps.notification("OCR Bot", "Typing Mode Updated", f"Active mode: {sender.title}")
+        rumps.notification("VisionType", "Typing Mode Updated", f"Active mode: {sender.title}")
 
     def set_delay(self, delay, sender):
         self.menu_delay = delay
@@ -206,21 +274,22 @@ class OCRTypingBot(rumps.App):
 
     def show_shortcuts_info(self, _):
         rumps.alert(
-            title="macOS Copy-Paste Tool Shortcuts",
+            title="VisionType Shortcuts & Features",
             message=(
                 "• ⌘ + ⇧ + C  or  ⌘ + ⇧ + X : Capture screen area & OCR\n"
                 "• ⌘ + ⇧ + V : Simulate physical typing of current text\n\n"
-                "Modes:\n"
-                "• Natural / Human Mode: Randomizes typing rhythm with micro-delays to evade proctoring/bot detection.\n"
-                "• Clean & Transform: Strip code line numbers, fix broken lines, or change case."
+                "Key Features:\n"
+                "• Emojis & Unicode: Full native keystroke support.\n"
+                "• Natural / Human Mode: Jitter delays to evade bot detection.\n"
+                "• Clean & Transform: Strip line numbers, fix linebreaks, or clean emoji artifacts."
             )
         )
 
     def on_enter_custom_text(self, _):
         """Opens a modal dialog to enter or paste custom text directly into the buffer."""
         window = rumps.Window(
-            title="Enter Custom Text",
-            message="Type or paste the text you want the bot to type:",
+            title="VisionType - Enter Custom Text",
+            message="Type or paste text (emojis and code supported):",
             default_text=self.captured_text,
             ok="Save to Buffer",
             cancel="Cancel",
@@ -231,18 +300,18 @@ class OCRTypingBot(rumps.App):
             self.set_active_text(response.text)
             self.add_to_history(response.text)
             self.play_sound("Tink")
-            rumps.notification("OCR Bot", "Custom Text Saved", f"{len(response.text)} characters ready to type.")
+            rumps.notification("VisionType", "Custom Text Saved", f"{len(response.text)} characters ready to type.")
 
     def transform_text(self, transform_fn, label):
         """Applies a transformation function to the active text."""
         if not self.captured_text:
-            rumps.notification("OCR Bot", "No Text to Transform", "Capture text first or enter custom text.")
+            rumps.notification("VisionType", "No Text to Transform", "Capture text first or enter custom text.")
             return
         transformed = transform_fn(self.captured_text)
         self.set_active_text(transformed)
         self.add_to_history(transformed)
         self.play_sound("Pop")
-        rumps.notification("OCR Bot", label, f"Updated text: {len(transformed)} characters.")
+        rumps.notification("VisionType", label, f"Updated text: {len(transformed)} characters.")
 
     def update_history_menu(self):
         # rumps MenuItem._menu is None until the first item is added
@@ -270,13 +339,13 @@ class OCRTypingBot(rumps.App):
             self.set_active_text(text)
             self.play_sound("Tink")
             first_line = text.strip().splitlines()[0] if text.strip() else ""
-            rumps.notification("OCR Bot", "Active Text Updated", f"Selected: {first_line[:30]}...")
+            rumps.notification("VisionType", "Active Text Updated", f"Selected: {first_line[:30]}...")
         return callback
 
     def clear_history(self, _):
         self.history.clear()
         self.update_history_menu()
-        rumps.notification("OCR Bot", "History Cleared", "Recent capture history has been wiped.")
+        rumps.notification("VisionType", "History Cleared", "Recent capture history has been wiped.")
 
     def set_active_text(self, text):
         self.captured_text = text
@@ -288,8 +357,8 @@ class OCRTypingBot(rumps.App):
         lines = len(text.splitlines()) if text else 0
         
         preview = text.strip().replace("\n", " ")
-        if len(preview) > 22:
-            preview = preview[:22] + "..."
+        if len(preview) > 20:
+            preview = preview[:20] + "..."
         
         if text.strip():
             self.preview_item.title = f"Current ({chars}c, {words}w, {lines}L): \"{preview}\""
@@ -331,13 +400,13 @@ class OCRTypingBot(rumps.App):
                 self.add_to_history(text)
                 self.play_sound("Tink")
                 rumps.notification(
-                    "OCR Bot",
+                    "VisionType",
                     "Text Captured & Copied!",
                     f"{len(text)} characters extracted ready to type."
                 )
             else:
                 self.play_sound("Basso")
-                rumps.notification("OCR Bot", "OCR Result Empty", "No legible text was detected in the selection.")
+                rumps.notification("VisionType", "OCR Result Empty", "No legible text was detected in the selection.")
         except pytesseract.TesseractNotFoundError:
             rumps.alert(
                 title="Tesseract Not Found",
@@ -347,7 +416,7 @@ class OCRTypingBot(rumps.App):
                 )
             )
         except Exception as e:
-            rumps.notification("OCR Bot", "OCR Extraction Error", str(e))
+            rumps.notification("VisionType", "OCR Extraction Error", str(e))
         finally:
             if os.path.exists(TEMP_IMAGE_PATH):
                 try:
@@ -357,7 +426,7 @@ class OCRTypingBot(rumps.App):
 
     def perform_typing(self, delay=0.0):
         if self.is_typing:
-            rumps.notification("OCR Bot", "Typing in Progress", "Please wait for current text to finish.")
+            rumps.notification("VisionType", "Typing in Progress", "Please wait for current text to finish.")
             return
 
         # Choose clipboard text or fallback to captured text
@@ -365,14 +434,14 @@ class OCRTypingBot(rumps.App):
         text_to_type = self.captured_text if self.captured_text else (clipboard_text if clipboard_text else "")
 
         if not text_to_type or not text_to_type.strip():
-            rumps.notification("OCR Bot", "No Text Available", "Capture text first (⌘⇧C) or copy to clipboard.")
+            rumps.notification("VisionType", "No Text Available", "Capture text first (⌘⇧C) or copy to clipboard.")
             return
 
         self.is_typing = True
         try:
             if delay > 0:
                 rumps.notification(
-                    "OCR Bot",
+                    "VisionType",
                     f"Typing in {int(delay)}s...",
                     "Click on your target window/input field now!"
                 )
@@ -381,37 +450,37 @@ class OCRTypingBot(rumps.App):
                 # Hotkey triggered: buffer 350ms so user releases Cmd and Shift
                 time.sleep(0.35)
 
-            # Type multiline text line-by-line using keyboard events
+            # Type multiline text character-by-character supporting Emojis & Unicode
             lines = text_to_type.splitlines()
             for idx, line in enumerate(lines):
                 if idx > 0:
                     pyautogui.press("enter")
                     time.sleep(self.get_keystroke_delay())
 
-                if line:
-                    if self.typing_mode == "human":
-                        # Type character by character with natural jitter
-                        for ch in line:
-                            try:
-                                pyautogui.write(ch)
-                            except Exception:
-                                pass
-                            time.sleep(self.get_keystroke_delay(char=ch))
-                    else:
-                        try:
-                            pyautogui.write(line, interval=self.typing_interval)
-                        except Exception:
-                            # Fallback for unicode or special characters
-                            for ch in line:
-                                try:
-                                    pyautogui.write(ch)
-                                except Exception:
-                                    pass
-                                time.sleep(self.typing_interval)
+                for ch in line:
+                    self.type_single_character(ch)
+                    time.sleep(self.get_keystroke_delay(char=ch))
             
             self.play_sound("Pop")
         finally:
             self.is_typing = False
+
+    def type_single_character(self, ch: str):
+        """
+        Types any character accurately:
+        - Printable ASCII: pyautogui.write()
+        - Emojis and Unicode: Native Quartz CGEvent Unicode injection
+        """
+        # Standard ASCII letter/digit/symbol
+        if ord(ch) < 128 and ch.isprintable():
+            try:
+                pyautogui.write(ch)
+                return
+            except Exception:
+                pass
+
+        # Unicode / Emoji / Extended Character
+        send_unicode_char(ch)
 
     def get_keystroke_delay(self, char=None):
         """Calculates keystroke delay based on active mode."""
@@ -435,7 +504,7 @@ class OCRTypingBot(rumps.App):
         threading.Thread(target=self.perform_typing, args=(self.menu_delay,), daemon=True).start()
 
 
-def start_hotkey_listener(app: OCRTypingBot):
+def start_hotkey_listener(app: VisionType):
     """
     Listens for global macOS hotkeys:
       - Cmd + Shift + C  (or Cmd + Shift + X) -> Trigger OCR Capture
@@ -465,12 +534,12 @@ def start_hotkey_listener(app: OCRTypingBot):
 
 
 if __name__ == "__main__":
-    print("🚀 Starting macOS OCR Typing Bot...")
+    print("🚀 Starting VisionType...")
     if TESSERACT_PATH:
         print(f"🔍 Tesseract detected at: {TESSERACT_PATH}")
     else:
         print("⚠️  Tesseract not found in standard paths. Run: brew install tesseract")
 
-    app = OCRTypingBot()
+    app = VisionType()
     start_hotkey_listener(app)
     app.run()
