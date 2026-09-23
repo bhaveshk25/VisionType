@@ -21,7 +21,7 @@ A feature-packed macOS menu bar productivity application engineered to **bypass 
 
 ---
 
-## ✨ Feature Suite
+## ✨ Full Feature Suite
 
 ### 🎯 Core Capabilities
 - 📸 **Instant Screen OCR (`⌘ + ⇧ + C` or `⌘ + ⇧ + X`)**: Snaps an interactive selection area to crop and extract text anywhere on your screen.
@@ -29,11 +29,11 @@ A feature-packed macOS menu bar productivity application engineered to **bypass 
 - 🎭 **Natural / Human Typing Mode**: Emulates realistic human typing speed variations (jitter) to prevent detection by automated proctoring software.
 - ✍️ **Enter Custom Text Modal**: Quick popup dialog (`rumps.Window`) to enter or paste custom text directly into the typing buffer without taking a screenshot.
 
-### 🧹 Text Cleaners & Formatters
-- **Fix Broken Linebreaks**: Automatically re-joins paragraphs that were awkwardly wrapped across lines by OCR.
-- **Strip Code Line Numbers**: Regex-powered cleaner that strips prefixes like `1 | `, `01: `, `[12] `, or `>>> `.
-- **Trim Excess Whitespace**: Removes trailing spaces and collapses redundant blank lines.
-- **Case Converters**: Instant conversion to `UPPERCASE`, `lowercase`, or `Title Case`.
+### 🧹 Smart Cleaners & Formatters
+- **🔗 Fix Broken Linebreaks**: Automatically re-joins paragraphs that were awkwardly wrapped across lines by OCR.
+- **🔢 Strip Code Line Numbers**: Regex-powered cleaner that strips prefixes like `1 | `, `01: `, `[12] `, or `>>> `.
+- **✂️ Trim Excess Whitespace**: Removes trailing spaces and collapses redundant blank lines.
+- **🔠 Case Converters**: Instant conversion to `UPPERCASE`, `lowercase`, or `Title Case`.
 
 ### 🖥️ Menu Bar & Workflow Controls
 - 📊 **Live Buffer Statistics**: Real-time character count, word count, and line count displayed directly in the menu preview: e.g., `Current (142c, 24w, 3L): "..."`.
@@ -82,7 +82,73 @@ flowchart TD
 
 ---
 
-## ⚙️ Installation & Setup
+## 📋 Menu Bar Walkthrough
+
+When running, click the **📋 OCR Bot** icon in your top menu bar to access the full control center:
+
+```
+📋 OCR Bot
+├── Current (84c, 14w, 2L): "def calculate..."  <-- Live buffer stats & text preview
+├── ─────────────────────────
+├── 📸 Capture Text (⌘⇧C)                        <-- Triggers interactive screen selection
+├── ⌨️  Type Text (⌘⇧V)                          <-- Starts typing buffer into focused app
+├── ✍️  Enter Custom Text...                      <-- Opens dialog to input/paste custom text
+├── ─────────────────────────
+├── 🧹 Clean & Transform                         <-- Formatting submenu
+│   ├── 🔗 Fix Broken Linebreaks                 <-- Joins words broken across line wraps
+│   ├── 🔢 Strip Code Line Numbers               <-- Removes leading line numbers (1., 01:, >>>)
+│   ├── ✂️  Trim Excess Whitespace                <-- Collapses blank lines & trailing spaces
+│   ├── ─────────────────────
+│   ├── 🔠 UPPERCASE                             <-- Converts text to UPPERCASE
+│   ├── 🔡 lowercase                             <-- Converts text to lowercase
+│   └── 🔤 Title Case                            <-- Converts text to Title Case
+├── 🕒 Recent Captures                           <-- History submenu
+│   ├── 1. def calculate_sum...                 <-- Click to make active
+│   ├── 2. User authentication token...
+│   ├── ─────────────────────
+│   └── Clear History                            <-- Wipes recent captures
+├── ⚡ Typing Speed & Mode                        <-- Speed & rhythm options
+│   ├── ⚡ Fast (0.01s)
+│   ├── ⏱️  Normal (0.03s) [Default]
+│   ├── 🐢 Safe / Slow (0.06s)
+│   ├── ─────────────────────
+│   └── 🎭 Natural / Human (Jitter)              <-- Randomizes keystrokes (Anti-Bot)
+├── ⏳ Menu Focus Delay                          <-- Time to click target window from menu
+│   ├── 1 Second
+│   ├── 2 Seconds [Default]
+│   └── 3 Seconds
+├── ─────────────────────────
+├── 🔊 Sound Effects [✓]                         <-- Toggle audio feedback (Tink / Pop)
+├── ℹ️  Keyboard Shortcuts                       <-- Help card
+└── Quit                                         <-- Closes the application
+```
+
+---
+
+## 📖 Real-World How-To Guides
+
+### Scenario 1: Bypassing Paste Block in an Exam or Virtual Machine (Citrix / RDP)
+1. Select the text you want to transfer, or press **`⌘ + ⇧ + C`** to crop and OCR it from another document/window.
+2. If the exam checks for bot/macro activity, select **`⚡ Typing Speed & Mode`** > **`🎭 Natural / Human (Jitter)`**.
+3. Click your mouse into the locked input box in the exam or VM window.
+4. Press **`⌘ + ⇧ + V`**.
+5. The tool simulates authentic human typing character-by-character directly through keyboard events.
+
+### Scenario 2: Copying Code from a YouTube Video or Presentation
+1. Pause the video on the code you want.
+2. Press **`⌘ + ⇧ + C`** and drag the selection rectangle over the code.
+3. If the video displayed editor line numbers (e.g., `1 | `, `2 | `), click the menu bar and select **`🧹 Clean & Transform`** > **`🔢 Strip Code Line Numbers`**.
+4. Click into your code editor and press **`⌘ + ⇧ + V`**. Your clean, runnable code will be typed in!
+
+### Scenario 3: Pasting a Confidential Token or Password without Clipboard Leaks
+1. Click the menu bar and choose **`✍️ Enter Custom Text...`**.
+2. Type or paste your token into the private prompt window and click **Save to Buffer**.
+3. Click your cursor into the password field.
+4. Press **`⌘ + ⇧ + V`** to type it safely.
+
+---
+
+## ⚙️ Installation & Setup on macOS
 
 ### 1. Prerequisites
 - macOS Monterey (12+), Ventura (13+), Sonoma (14+), or Sequoia (15+)
@@ -90,6 +156,7 @@ flowchart TD
 - Python 3.9+
 
 ### 2. Install Tesseract OCR
+Install the Tesseract OCR engine using Homebrew:
 ```bash
 brew install tesseract
 ```
@@ -108,7 +175,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Run the Application
+### 4. Run the Tool
 ```bash
 python3 OCRBot/ocr_typing_bot.py
 ```
@@ -129,40 +196,12 @@ Because this tool captures screen pixels, listens to global hotkeys, and generat
 1. Open **System Settings** > **Privacy & Security** > **Screen & System Audio Recording**.
 2. Ensure your terminal application is enabled.
 
-> [!NOTE]
-> If you make changes to permissions, restart your terminal application for the changes to take effect.
-
----
-
-## 📖 How to Use
-
-1. **Capturing Text**:
-   - Press **`⌘ + ⇧ + C`** (or click **📸 Capture Text** in the menu).
-   - Drag the crosshair over any text on your screen.
-   - A macOS notification and sound cue will confirm the text was captured and copied.
-2. **Cleaning Text (Optional)**:
-   - If copying code, select **`🧹 Clean & Transform`** > **`🔢 Strip Code Line Numbers`**.
-   - If text has broken line wraps, select **`🔗 Fix Broken Linebreaks`**.
-3. **Simulating Keystrokes**:
-   - Place your cursor in the target input field.
-   - Press **`⌘ + ⇧ + V`**.
-   - The bot types out your text character-by-character!
-4. **Using Natural / Human Mode**:
-   - Select **`⚡ Typing Speed & Mode`** > **`🎭 Natural / Human (Jitter)`**.
-   - The bot will vary keypress speeds and pause after punctuation, mirroring authentic human typing.
-
----
-
-## 🗂️ Project Structure
-
-```
-macOS-copy-paste-tool/
-├── OCRBot/
-│   └── ocr_typing_bot.py     # Main menu bar app, OCR engine & typing simulator
-├── .gitignore                # Git ignore configuration
-├── requirements.txt          # Python library dependencies
-└── README.md                 # Project documentation
-```
+> [!TIP]
+> If you ever need to reset permissions due to macOS caching issues, run:
+> ```bash
+> tccutil reset Accessibility
+> tccutil reset ScreenCapture
+> ```
 
 ---
 
@@ -174,6 +213,11 @@ macOS-copy-paste-tool/
   Ensure your terminal has **Accessibility** permission enabled in macOS System Settings.
 - **Screenshot Crosshair Doesn't Appear**:
   Ensure your terminal has **Screen Recording** permission enabled.
+- **Running in Background**:
+  To keep the bot running even after closing your terminal window:
+  ```bash
+  nohup python3 OCRBot/ocr_typing_bot.py > /dev/null 2>&1 &
+  ```
 
 ---
 
