@@ -245,7 +245,12 @@ class OCRTypingBot(rumps.App):
         rumps.notification("OCR Bot", label, f"Updated text: {len(transformed)} characters.")
 
     def update_history_menu(self):
-        self.history_menu.clear()
+        # rumps MenuItem._menu is None until the first item is added
+        if hasattr(self.history_menu, "_menu") and self.history_menu._menu is not None:
+            try:
+                self.history_menu.clear()
+            except Exception:
+                pass
         if not self.history:
             empty_item = rumps.MenuItem("No recent captures")
             self.history_menu.add(empty_item)
