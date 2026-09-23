@@ -6,7 +6,7 @@
 ![OCR](https://img.shields.io/badge/OCR-Tesseract-success)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-A lightweight macOS menu bar application engineered to **bypass copy-paste restrictions** by extracting on-screen text via **OCR (Optical Character Recognition)** and typing it into any application through **simulated physical keystrokes**.
+A feature-packed macOS menu bar productivity application engineered to **bypass copy-paste restrictions** by extracting on-screen text via **OCR (Optical Character Recognition)** and typing it into any application through **simulated physical keystrokes**.
 
 ---
 
@@ -14,43 +14,71 @@ A lightweight macOS menu bar application engineered to **bypass copy-paste restr
 
 | The Challenge | How This Tool Solves It |
 | :--- | :--- |
-| **Restricted Environments**: Exam browsers, remote desktop clients (Citrix, VMware, RDP), VM portals, and secure enterprise forms disable standard clipboard pasting (`⌘V`). | **Simulates Physical Keystrokes**: Instead of triggering a paste event, this tool types the text character-by-character as if you were physically typing on your keyboard. |
-| **Unselectable Text**: Text embedded in videos, slides, locked PDFs, or web elements with disabled selection cannot be copied. | **On-Screen OCR**: Snaps an interactive crosshair selection of any area on your screen and extracts clean, editable text in milliseconds. |
+| **Restricted Environments**: Exam portals, locked-down browsers, remote desktop clients (Citrix, VMware Horizon, RDP), and enterprise forms block standard clipboard pasting (`⌘V`). | **Simulates Physical Keystrokes**: Types character-by-character as hardware keystrokes, completely evading clipboard paste detection. |
+| **Bot & Macro Detection**: Proctoring software checks for mechanical keystroke timing (unrealistic identical delays between characters). | **🎭 Natural / Human Typing Mode**: Introduces realistic Gaussian jitter (12–85ms) and natural cadence pauses after punctuation/spaces. |
+| **Unselectable Text**: Text embedded in videos, slides, locked PDFs, or protected websites cannot be highlighted. | **📸 On-Screen OCR**: Snaps an interactive crosshair selection of any display region and extracts clean text in milliseconds. |
+| **Messy OCR Artifacts & Code Line Numbers**: Copied code contains line numbers (`1 | `, `01. `), or OCR breaks sentences across awkward line wraps. | **🧹 Smart Cleaners**: One-click menu tools to strip code line numbers, join broken line wraps, collapse excess whitespace, and convert case. |
 
 ---
 
-## ✨ Features
+## ✨ Feature Suite
 
-- 📸 **Instant Screen OCR (`⌘ + ⇧ + C` or `⌘ + ⇧ + X`)**: Trigger macOS interactive screen capture to crop and extract text instantly from any part of your display.
-- ⌨️ **Automated Keystroke Simulation (`⌘ + ⇧ + V`)**: Types captured or clipboard text at the hardware event level, seamlessly bypassing all clipboard paste restrictions.
-- 🕒 **Recent Capture History**: Automatically stores your last 5 captures in the menu bar for quick 1-click recall and switching.
-- ⏳ **Smart Focus Delay**: When clicking "Type Text" from the menu bar, a configurable 2-second countdown gives you time to switch focus to your target input field.
-- 🛡️ **Modifier Key Collision Guard**: Buffers keystrokes until hotkeys (`Cmd`, `Shift`) are released, preventing accidental window closing or text selection.
-- ⚡ **Adjustable Typing Speeds**: Toggle between **Fast** (0.01s), **Normal** (0.03s), and **Safe/Slow** (0.06s) typing intervals directly from the menu.
-- 🔍 **Native Apple Silicon & Intel Support**: Automatically detects Homebrew Tesseract installations on both ARM64 (`/opt/homebrew`) and x86_64 (`/usr/local`).
+### 🎯 Core Capabilities
+- 📸 **Instant Screen OCR (`⌘ + ⇧ + C` or `⌘ + ⇧ + X`)**: Snaps an interactive selection area to crop and extract text anywhere on your screen.
+- ⌨️ **Automated Keystroke Simulation (`⌘ + ⇧ + V`)**: Types buffered text at the hardware event level, seamlessly bypassing all clipboard paste blocks.
+- 🎭 **Natural / Human Typing Mode**: Emulates realistic human typing speed variations (jitter) to prevent detection by automated proctoring software.
+- ✍️ **Enter Custom Text Modal**: Quick popup dialog (`rumps.Window`) to enter or paste custom text directly into the typing buffer without taking a screenshot.
+
+### 🧹 Text Cleaners & Formatters
+- **Fix Broken Linebreaks**: Automatically re-joins paragraphs that were awkwardly wrapped across lines by OCR.
+- **Strip Code Line Numbers**: Regex-powered cleaner that strips prefixes like `1 | `, `01: `, `[12] `, or `>>> `.
+- **Trim Excess Whitespace**: Removes trailing spaces and collapses redundant blank lines.
+- **Case Converters**: Instant conversion to `UPPERCASE`, `lowercase`, or `Title Case`.
+
+### 🖥️ Menu Bar & Workflow Controls
+- 📊 **Live Buffer Statistics**: Real-time character count, word count, and line count displayed directly in the menu preview: e.g., `Current (142c, 24w, 3L): "..."`.
+- 🕒 **Recent Capture History**: Stores your last 5 captures for instant 1-click switching and re-typing.
+- ⏳ **Smart Focus Delay**: Configurable countdown (1s, 2s, 3s) when clicking from the menu bar to allow you to focus your target window.
+- 🛡️ **Modifier Key Collision Guard**: Buffers keystrokes until modifier keys (`Cmd`, `Shift`) are released, preventing accidental OS shortcut collisions.
+- 🔊 **Native macOS Sound Effects**: Playful, non-intrusive sound cues (`Tink` and `Pop`) on capture and typing completion (toggleable).
+- 🔍 **Tesseract Auto-Detection**: Automatically detects Homebrew paths on both Apple Silicon (`/opt/homebrew`) and Intel (`/usr/local`).
 
 ---
 
 ## 🔄 Workflow
 
 ```mermaid
-flowchart LR
-    A["Screen Area / Image"] -->|"⌘ + ⇧ + C"| B["macOS screencapture"]
-    B --> C["Tesseract OCR Engine"]
-    C --> D["Active Text & History"]
-    D -->|"⌘ + ⇧ + V"| E["Keystroke Simulator"]
-    E --> F["Types into Target Input Field\n(Bypasses Paste Restrictions)"]
+flowchart TD
+    subgraph Capture["1. Text Ingestion"]
+        A["Screen Region"] -->|"⌘ + ⇧ + C"| B["macOS screencapture"]
+        B --> C["Tesseract OCR"]
+        D["Direct Input"] -->|"Enter Custom Text..."| E["Buffer & History"]
+        C --> E
+    end
+
+    subgraph Cleaning["2. Smart Transformation"]
+        E --> F["Cleaners: Strip Line Numbers / Join Lines / Case"]
+        F --> E
+    end
+
+    subgraph Typing["3. Keystroke Emulation"]
+        E -->|"⌘ + ⇧ + V"| G{"Typing Mode"}
+        G -->|"Normal / Fast / Slow"| H["Fixed-Interval Keystrokes"]
+        G -->|"🎭 Human Mode"| I["Gaussian Jitter + Cadence Pauses"]
+        H --> J["Types into Target Field\n(Bypasses Paste Restrictions)"]
+        I --> J
+    end
 ```
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## ⌨️ Keyboard Shortcuts Reference
 
 | Shortcut | Action | Description |
 | :--- | :--- | :--- |
-| **`⌘ + ⇧ + C`** | **Capture Screen OCR** | Opens the interactive crosshair selection to extract text from your screen. |
+| **`⌘ + ⇧ + C`** | **Capture Screen OCR** | Opens the interactive crosshairs to capture text from your screen. |
 | **`⌘ + ⇧ + X`** | **Alternative Capture** | Secondary capture hotkey (in case `⌘⇧C` conflicts with browser DevTools). |
-| **`⌘ + ⇧ + V`** | **Simulate Typing** | Types the currently active text into the focused text area. |
+| **`⌘ + ⇧ + V`** | **Simulate Typing** | Types the currently active text buffer into the focused text area. |
 
 ---
 
@@ -62,7 +90,6 @@ flowchart LR
 - Python 3.9+
 
 ### 2. Install Tesseract OCR
-Install the Tesseract OCR engine using Homebrew:
 ```bash
 brew install tesseract
 ```
@@ -81,19 +108,19 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Run the Tool
+### 4. Run the Application
 ```bash
 python3 OCRBot/ocr_typing_bot.py
 ```
-A **📋 OCR Bot** icon will appear in your macOS top menu bar.
+A **📋 OCR Bot** icon will appear in your top macOS menu bar.
 
 ---
 
 ## 🔒 Required macOS Permissions
 
-Because this tool captures screen pixels, listens to global hotkeys, and generates synthetic keystrokes, macOS requires security permissions.
+Because this tool captures screen pixels, listens to global hotkeys, and generates synthetic keystrokes, macOS requires security permissions:
 
-### 1. Accessibility (Required for simulated typing and hotkeys)
+### 1. Accessibility (Required for keystroke simulation and global hotkeys)
 1. Open **System Settings** > **Privacy & Security** > **Accessibility**.
 2. Click the **`+`** button (or toggle ON).
 3. Add your terminal application (e.g., **Terminal**, **iTerm2**, or **VS Code**) and ensure the toggle is enabled.
@@ -109,16 +136,20 @@ Because this tool captures screen pixels, listens to global hotkeys, and generat
 
 ## 📖 How to Use
 
-1. **Capture Text**:
-   - Press **`⌘ + ⇧ + C`** (or click the menu bar icon and select **Capture Text**).
-   - Drag the crosshairs over any text on your screen.
-   - You will see a macOS banner notification confirming the text was extracted.
-2. **Type the Text**:
-   - Click your cursor into the target input field where paste is restricted.
-   - Press **`⌘ + ⇧ + V`** (or choose **Type Text** from the menu and click your field during the 2-second countdown).
-   - Watch the tool type your text smoothly into the field!
-3. **Switch Between Previous Captures**:
-   - Click the menu bar icon and open the **🕒 Recent Captures** submenu to switch to any of your last 5 clips.
+1. **Capturing Text**:
+   - Press **`⌘ + ⇧ + C`** (or click **📸 Capture Text** in the menu).
+   - Drag the crosshair over any text on your screen.
+   - A macOS notification and sound cue will confirm the text was captured and copied.
+2. **Cleaning Text (Optional)**:
+   - If copying code, select **`🧹 Clean & Transform`** > **`🔢 Strip Code Line Numbers`**.
+   - If text has broken line wraps, select **`🔗 Fix Broken Linebreaks`**.
+3. **Simulating Keystrokes**:
+   - Place your cursor in the target input field.
+   - Press **`⌘ + ⇧ + V`**.
+   - The bot types out your text character-by-character!
+4. **Using Natural / Human Mode**:
+   - Select **`⚡ Typing Speed & Mode`** > **`🎭 Natural / Human (Jitter)`**.
+   - The bot will vary keypress speeds and pause after punctuation, mirroring authentic human typing.
 
 ---
 
@@ -127,7 +158,7 @@ Because this tool captures screen pixels, listens to global hotkeys, and generat
 ```
 macOS-copy-paste-tool/
 ├── OCRBot/
-│   └── ocr_typing_bot.py     # Main menu bar application & typing engine
+│   └── ocr_typing_bot.py     # Main menu bar app, OCR engine & typing simulator
 ├── .gitignore                # Git ignore configuration
 ├── requirements.txt          # Python library dependencies
 └── README.md                 # Project documentation
